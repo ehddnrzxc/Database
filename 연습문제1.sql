@@ -80,25 +80,16 @@ CREATE TABLE IF NOT EXISTS tbl_order (
     10      올림픽 챔피언    나이스북    13000
 */
 INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("축구의 역사", "굿스포츠", 7000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("축구 아는 여자", "나이스북", 13000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("축구의 이해", "대한미디어", 22000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("골프 바이블", "대한미디어", 35000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("피겨 교본", "굿스포츠", 6000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("역도 단계별 기술", "굿스포츠", 6000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("야구의 추억", "이상미디어", 20000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("야구를 부탁해", "이상미디어", 13000);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("올림픽 이야기", "삼성당", 7500);
-INSERT INTO tbl_book (book_name, publisher, price)
-VALUES ("올림픽 챔피언", "나이스북", 13000);
+VALUES ("축구의 역사", "굿스포츠", 7000),
+        ("축구 아는 여자", "나이스북", 13000),
+        ("축구의 이해", "대한미디어", 22000),
+        ("골프 바이블", "대한미디어", 35000),
+        ("피겨 교본", "굿스포츠", 6000),
+        ("역도 단계별 기술", "굿스포츠", 6000),
+        ("야구의 추억", "이상미디어", 20000),
+        ("야구를 부탁해", "이상미디어", 13000),
+        ("올림픽 이야기", "삼성당", 7500),
+        ("올림픽 챔피언", "나이스북", 13000);
 
 
 
