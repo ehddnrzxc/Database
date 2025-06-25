@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS tbl_customer (
 CREATE TABLE IF NOT EXISTS tbl_order (
   order_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   cust_id  INT NULL,
-  book_id INT NOT NULL,
+  book_id INT NULL,
   amount INT NOT NULL,
   ordered_at DATE NOT NULL DEFAULT (CURRENT_DATE),
   FOREIGN KEY(cust_id) REFERENCES tbl_customer(cust_id)
@@ -106,15 +106,11 @@ VALUES ("축구의 역사", "굿스포츠", 7000),
 ALTER TABLE tbl_customer AUTO_INCREMENT = 1000;
 
 INSERT INTO tbl_customer (cust_name, cust_addr, cust_tel)
-VALUES ("박지성", "영국", "000-000-0000");
-INSERT INTO tbl_customer (cust_name, cust_addr, cust_tel)
-VALUES ("김연아", "대한민국", "111-111-1111");
-INSERT INTO tbl_customer (cust_name, cust_addr, cust_tel)
-VALUES ("장미란", "대한민국", "222-222-2222");
-INSERT INTO tbl_customer (cust_name, cust_addr, cust_tel)
-VALUES ("추신수", "미국", "333-333-3333");
-INSERT INTO tbl_customer (cust_name, cust_addr)
-VALUES ("박세리", "대한민국");
+VALUES ("박지성", "영국", "000-000-0000"),
+        ("김연아", "대한민국", "111-111-1111"),
+        ("장미란", "대한민국", "222-222-2222"),
+        ("추신수", "미국", "333-333-3333"),
+        ("박세리", "대한민국", NULL);
 
 
 
@@ -143,6 +139,8 @@ INSERT INTO tbl_order (cust_id, book_id, amount, ordered_at) VALUES
 (1002, 10, 2, '2020-07-08'),
 (1001, 10, 1, '2020-07-09'),
 (1002, 6, 4, '2020-07-10');
+
+commit;
 
 # 7. 책이름에 '올림픽'이 포함된 책 정보를 조회하세요.
 /*
@@ -190,7 +188,7 @@ WHERE ordered_at BETWEEN "2020-07-05" AND "2020-07-09";
 */
 SELECT cust_name AS 고객명
 FROM tbl_customer c
-left JOIN tbl_order o
+left outer JOIN tbl_order o
 ON o.cust_id = c.cust_id
 WHERE o.cust_id IS NULL;
 
@@ -206,11 +204,15 @@ WHERE o.cust_id IS NULL;
     9         김연아  올림픽 챔피언    13000    2020-07-09
     10        장미란  역도 단계별 기술 24000    2020-07-10
 */
-SELECT order_id, cust_name, book_name, amount, oreded_at
-FROM tbl_order o
-INNER JOIN tbl_book b
-ON b.book_id = o.book_id
-WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
+SELECT order_id AS 주문번호,
+        cust_name AS 구매자,
+        book_name AS 책이름,
+        amount * price AS 총구매액,
+        ordered_at AS 주문일자
+FROM tbl_book b
+INNER JOIN tbl_order o ON b.book_id = o.book_id
+INNER JOIN tbl_customer c ON c.cust_id = o.cust_id
+WHERE ordered_at NOT BETWEEN "2020-07-04" AND "2020-07-07";
 
 
 
@@ -219,6 +221,14 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     고객명  책이름            주문일자
     장미란  역도 단계별 기술  2020-07-10
 */
+select cust_name as 고객명,
+        book_name as 책이름,
+        ordered_at as 주문일자
+from tbl_book b
+INNER JOIN tbl_order o ON b.book_id = o.book_id
+INNER JOIN tbl_customer c ON c.cust_id = o.cust_id
+ORDER BY ordered_at desc
+LIMIT 0, 1;
 
 
 # 13. 주문된 적이 없는 책의 주문번호, 책번호, 책이름을 조회하세요.
@@ -227,6 +237,12 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     NULL     4      골프 바이블
     NULL     9      올림픽 이야기
 */
+select order_id as 주문번호,
+        b.book_id as 책번호,
+        book_name as 책이름
+from tbl_book b
+left outer jOIN tbl_order o ON b.book_id = o.book_id
+where ordered_at is null;
 
 
 # 14. 모든 서적 중에서 가장 비싼 서적을 구매한 고객이름, 책이름, 가격을 조회하세요.
@@ -235,6 +251,15 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     고객명  책이름       책가격
     NULL    골프 바이블  35000
 */
+select cust_name as 고객명,
+        book_name as 책이름,
+        price as 책가격
+from tbl_book b
+left outer JOIN tbl_order o ON b.book_id = o.book_id 
+left outer JOIN tbl_customer c ON c.cust_id = o.cust_id
+where price = (select max(price) from tbl_book)
+limit 0, 1;
+
 
 
 # 15. '김연아'가 구매한 도서수를 조회하세요.
@@ -242,6 +267,12 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     고객명  구매도서수
     김연아  2
 */
+select cust_name as 고객명,
+        sum(amount) as 구매도서수
+from tbl_customer c
+inner join tbl_order o on c.cust_id = o.cust_id
+where cust_name = "김연아";
+
 
 
 # 16. 출판사별로 판매된 책의 개수를 조회하세요.
@@ -253,6 +284,13 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     이상미디어 5
     삼성당     0
 */
+select publisher as 출판사,
+        IFNULL(sum(amount),0) as 판매된책수   # IFNULL: NULL값을 입력한 값으로 바꾸는 함수
+from tbl_book b
+left join tbl_order o on o.book_id = b.book_id
+group by publisher;
+
+
 
 
 # 17. '박지성'이 구매한 도서를 발간한 출판사(publisher) 개수를 조회하세요.
@@ -260,7 +298,15 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     고객명  출판사수
     박지성  3
 */
+SELECT cust_name as 고객명,
+        count(distinct publisher) as 출판사수
+from tbl_customer c
+inner join tbl_order o on c.cust_id = o.cust_id
+inner join tbl_book b on b.book_id = o.book_id
+where cust_name = '박지성'
+group by c.cust_id, cust_name;
 
+ 
 
 # 18. 모든 구매 고객의 이름과 총구매액(price * amount)을 조회하세요. 구매 이력이 있는 고객만 조회하세요.
 /*
@@ -270,6 +316,12 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     장미란  62000
     추신수  86000
 */
+SELECT cust_name as 고객명,
+        sum(price * amount) as 총구매액
+from tbl_customer c
+inner join tbl_order o on c.cust_id = o.cust_id
+inner join tbl_book b on b.book_id = o.book_id
+group by cust_name;
 
 
 # 19. 모든 구매 고객의 이름과 총구매액(price * amount)과 구매횟수를 조회하세요.
@@ -282,6 +334,14 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     추신수  86000      2
     박세리  0          0
 */
+SELECT cust_name as 고객명,
+        ifnull(sum(price * amount), 0) as 총구매액,
+        count(amount) as 구매횟수
+from tbl_customer c
+left join tbl_order o on c.cust_id = o.cust_id
+left join tbl_book b on b.book_id = o.book_id
+group by c.cust_id, cust_name
+order by c.cust_id asc;
 
 
 # 20. 총구매액이 2~3위인 고객의 이름와 총구매액을 조회하세요.
@@ -290,6 +350,14 @@ WHERE ordered_at BETWEEN "2020-07-04" AND "2020-07-07";
     추신수  86000
     장미란  62000
 */
+select cust_name as 고객명,
+        sum(price * amount)as 총구매액
+from tbl_customer c
+left join tbl_order o on c.cust_id = o.cust_id
+left join tbl_book b on b.book_id = o.book_id
+group by c.cust_id, cust_name
+order by 총구매액 desc
+limit 1,2;
 
 
 DROP TABLE IF EXISTS tbl_order;
